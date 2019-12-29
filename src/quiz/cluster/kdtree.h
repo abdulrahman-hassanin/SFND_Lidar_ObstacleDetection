@@ -20,9 +20,10 @@ struct Node
 struct KdTree
 {
 	Node* root;
+	int dimension; 
 
-	KdTree()
-	: root(NULL)
+	KdTree(int dim = 2)
+	: root(NULL), dimension(dim)
 	{}
 
 	void insertHelper(Node *&node,uint depth, std::vector<float> point, int id)
@@ -33,17 +34,13 @@ struct KdTree
 		else
 		{	
 			// unsigned int to know the depth is even or odd
-			uint cd = depth % 2;
-
+			// uint cd = depth % 2;
+			uint dim = depth % this->dimension;
 			// if even, cd=0 and comparison will be based on x-axis
-			if(point[cd] < node->point[cd])
+			if(point[dim] < node->point[dim])
 				insertHelper(node->left, depth+1, point, id);
 			else
 				insertHelper(node->right, depth+1, point, id);
-			// if(point[cd] > ((*node)->point[cd]) )
-			// 	insertHelper( &((*node)->left), depth+1, point, id);
-			// else
-			// 	insertHelper( &((*node)->right), depth+1, point, id);
 		}
 		
 	}
@@ -57,7 +54,7 @@ struct KdTree
 	bool isInBox(const std::vector<float> target, const std::vector<float> point, float distanceTol)
 	{
 		bool in = false;
-		for(int dim = 0; dim<2; dim++)
+		for(int dim = 0; dim< this->dimension; dim++)
 			if( ((target[dim] - distanceTol) <= point[dim])  && ((target[dim] + distanceTol) >= point[dim]) )
 				in = true;
 		return in;
@@ -66,7 +63,7 @@ struct KdTree
 	bool checkDistance(const std::vector<float> target, const std::vector<float> point, float distanceTol)
 	{
 		float distance = 0.0;
-		for(int dim = 0; dim<2; dim++)
+		for(int dim = 0; dim< this->dimension; dim++)
 			distance += (target[dim] - point[dim]) * (target[dim] - point[dim]); 
 
 		return std::sqrt(distance) <= distanceTol;
@@ -79,9 +76,11 @@ struct KdTree
 				if(checkDistance(target, node->point, distanceTol))
 					ids.push_back(node->id);
 
-			if( (target[depth%2]-distanceTol) < node->point[depth%2] )
+			uint dim = depth % this->dimension;
+
+			if( (target[dim]-distanceTol) < node->point[dim] )
 				searchHelper(target, node->left, depth+1, distanceTol, ids);
-			if( (target[depth%2]+distanceTol) > node->point[depth%2] )
+			if( (target[dim]+distanceTol) > node->point[dim] )
 				searchHelper(target, node->right, depth+1, distanceTol, ids);
 		}
 	}
